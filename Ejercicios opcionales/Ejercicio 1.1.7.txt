@@ -1,0 +1,295 @@
+-- 1.1.7 Subconsultas (En la cláusula WHERE)
+-- 1.1.7.1 Con operadores básicos de comparación
+
+-- 1 Devuelve todos los productos del fabricante Lenovo. (Sin utilizar INNER JOIN).
+
+ SELECT 
+    *
+FROM
+    producto
+WHERE
+    codigo_fabricante = (SELECT 
+            codigo
+        FROM
+            fabricante
+        WHERE
+            nombre = 'lenovo');
+            
+-- 2 Devuelve todos los datos de los productos que tienen el mismo precio que el producto más caro del fabricante Lenovo. (Sin utilizar INNER JOIN).
+
+SELECT 
+    *
+FROM
+    producto
+WHERE
+    precio = (SELECT 
+            MAX(precio)
+        FROM
+            producto
+        WHERE
+            codigo_fabricante IN (SELECT 
+                    codigo
+                FROM
+                    fabricante
+                WHERE
+                    nombre = 'lenovo'));
+
+
+-- 3 Lista el nombre del producto más caro del fabricante Lenovo.   
+
+SELECT 
+    nombre
+FROM
+    producto
+WHERE
+    precio = (SELECT 
+            MAX(precio)
+        FROM
+            producto
+        WHERE
+            codigo_fabricante IN (SELECT 
+                    codigo
+                FROM
+                    fabricante
+                WHERE
+                    nombre = 'lenovo'));
+
+-- 4 Lista el nombre del producto más barato del fabricante Hewlett-Packard.
+SELECT 
+    nombre
+FROM
+    producto
+WHERE
+    precio = (SELECT 
+            min(precio)
+        FROM
+            producto
+        WHERE
+            codigo_fabricante IN (SELECT 
+                    codigo
+                FROM
+                    fabricante
+                WHERE
+                    nombre = 'Hewlett-Packard'));
+
+
+-- 5 Devuelve todos los productos de la base de datos que tienen un precio mayor o igual al producto más caro del fabricante Lenovo.
+SELECT 
+    *
+FROM
+    producto
+WHERE
+    precio >= (SELECT 
+            max(precio)
+        FROM
+            producto
+        WHERE
+            codigo_fabricante IN (SELECT 
+                    codigo
+                FROM
+                    fabricante
+                WHERE
+                    nombre = 'Lenovo'));
+
+-- 6 Lista todos los productos del fabricante Asus que tienen un precio superior al precio medio de todos sus productos.
+SELECT 
+    *
+FROM
+    producto
+WHERE
+    codigo_fabricante IN (SELECT 
+            codigo
+        FROM
+            fabricante
+        WHERE
+            nombre = 'Asus')
+            
+and precio > (SELECT 
+            avg(precio)
+        FROM
+            producto
+        WHERE
+            codigo_fabricante IN (SELECT 
+                    codigo
+                FROM
+                    fabricante
+                WHERE
+                    nombre = 'Asus'));
+                    
+-- --------------------------------------------------------------------------------------------------------------------------------------
+-- 1.1.7.2 Subconsultas con ALL y ANY
+
+-- 8 Devuelve el producto más caro que existe en la tabla producto sin hacer uso de MAX, ORDER BY ni LIMIT.      
+SELECT 
+    *
+FROM
+    producto
+WHERE
+    precio > ALL (SELECT 
+            precio
+        FROM
+            producto AS producto2
+        WHERE
+            producto2.codigo <> producto.codigo);
+
+
+-- 9 Devuelve el producto más barato que existe en la tabla producto sin hacer uso de MIN, ORDER BY ni LIMIT.  
+SELECT 
+    *
+FROM
+    producto
+WHERE
+    precio < ALL (SELECT 
+            precio
+        FROM
+            producto AS producto2
+        WHERE
+            producto2.codigo <> producto.codigo); 
+
+-- 10 Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando ALL o ANY).
+SELECT 
+    nombre
+FROM
+    fabricante
+WHERE
+    codigo = ANY (SELECT 
+            codigo_fabricante
+        FROM
+            producto);
+
+-- 11 Devuelve los nombres de los fabricantes que no tienen productos asociados. (Utilizando ALL o ANY).
+SELECT 
+    nombre
+FROM
+    fabricante
+WHERE
+    codigo != ALL (SELECT 
+            codigo_fabricante
+        FROM
+            producto);
+
+
+-- --------------------------------------------------------------------------------------------------------------------------------------
+-- 1.1.7.3 Subconsultas con IN y NOT IN
+
+-- 12 Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando IN o NOT IN).
+SELECT 
+    nombre
+FROM
+    fabricante
+WHERE
+    codigo IN (SELECT DISTINCT
+            codigo_fabricante
+        FROM
+            producto);
+
+-- 13 Devuelve los nombres de los fabricantes que no tienen productos asociados. (Utilizando IN o NOT IN).
+SELECT 
+    nombre
+FROM
+    fabricante
+WHERE
+    codigo NOT IN (SELECT DISTINCT
+            codigo_fabricante
+        FROM
+            producto);
+
+-- -------------------------------------------------------------------------------------------------------------------------------------
+-- 1.1.7.4 Subconsultas con EXISTS y NOT EXISTS
+-- 14 Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando EXISTS o NOT EXISTS).
+SELECT 
+    nombre
+FROM
+    fabricante
+WHERE
+    EXISTS( SELECT 
+            codigo_fabricante
+        FROM
+            producto
+        WHERE
+            producto.codigo_fabricante = fabricante.codigo);
+
+-- 15 Devuelve los nombres de los fabricantes que no tienen productos asociados. (Utilizando EXISTS o NOT EXISTS).
+SELECT 
+    nombre
+FROM
+    fabricante
+WHERE
+    NOT EXISTS( SELECT 
+            codigo_fabricante
+        FROM
+            producto
+        WHERE
+            producto.codigo_fabricante = fabricante.codigo);
+            
+-- ------------------------------------------------------------------------------------------------------------------------------------
+-- 1.1.7.5 Subconsultas correlacionadas
+-- 16 Lista el nombre de cada fabricante con el nombre y el precio de su producto más caro.
+SELECT 
+    f.nombre, p.nombre, p.precio, p.codigo
+FROM
+    fabricante AS f
+        INNER JOIN
+    producto AS p ON p.codigo_fabricante = f.codigo
+WHERE
+    p.precio > ALL (SELECT 
+            precio
+        FROM
+            producto AS p2
+        WHERE
+           p2.codigo <> p.codigo and p2.codigo_fabricante = p.codigo_fabricante)
+ORDER BY p.precio;
+
+-- 17 Devuelve un listado de todos los productos que tienen un precio mayor o igual a la media de todos los productos de su mismo fabricante.
+SELECT 
+    *
+FROM
+    producto
+WHERE
+    precio >= ALL (SELECT 
+            AVG(precio)
+        FROM
+            producto AS p2
+        WHERE
+            p2.codigo_fabricante = producto.codigo_fabricante  )
+ORDER BY precio;
+                
+
+-- 18  Lista el nombre del producto más caro del fabricante Lenovo.
+SELECT 
+    producto.codigo_fabricante, producto.nombre
+FROM
+    producto
+        INNER JOIN
+    fabricante ON producto.codigo_fabricante = fabricante.codigo
+WHERE
+    fabricante.nombre = 'Lenovo'
+ and producto.precio > all (SELECT 
+        precio
+    FROM
+        producto AS p2
+    WHERE
+       p2.codigo <> producto.codigo and p2.codigo_fabricante = producto.codigo_fabricante);
+
+-- -------------------------------------------------------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------------------------------------------
+-- 1.1.8 Subconsultas (En la cláusula HAVING)
+-- 7 Devuelve un listado con todos los nombres de los fabricantes que tienen el mismo número de productos que el fabricante Lenovo.
+SELECT 
+    fabricante.nombre, COUNT(producto.nombre)
+FROM
+    fabricante
+        INNER JOIN
+    producto ON producto.codigo_fabricante = fabricante.codigo
+GROUP BY fabricante.nombre
+HAVING COUNT(producto.nombre) = (SELECT 
+        COUNT(nombre)
+    FROM
+        producto
+    WHERE
+        codigo_fabricante IN (SELECT 
+                codigo
+            FROM
+                fabricante
+            WHERE
+                nombre = 'Lenovo'));

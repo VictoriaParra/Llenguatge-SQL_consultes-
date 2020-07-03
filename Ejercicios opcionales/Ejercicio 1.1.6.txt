@@ -1,0 +1,288 @@
+-- 1.1.6 Consultas resumen
+-- 1 Calcula el número total de productos que hay en la tabla productos.
+SELECT 
+    COUNT(nombre)
+FROM
+    producto;
+
+-- 2 Calcula el número total de fabricantes que hay en la tabla fabricante.
+SELECT 
+    COUNT(nombre)
+FROM
+    fabricante;
+
+-- 3 Calcula el número de valores distintos de código de fabricante aparecen en la tabla productos.
+SELECT 
+    COUNT(DISTINCT codigo_fabricante) AS valores_diferentes
+FROM
+    producto;
+
+-- 4 Calcula la media del precio de todos los productos.
+SELECT 
+    AVG(precio)
+FROM
+    producto;
+    
+-- o:
+
+SELECT 
+    ROUND(AVG(precio)) AS average
+FROM
+    producto;
+
+-- 5 Calcula el precio más barato de todos los productos.
+SELECT 
+    MIN(precio)
+FROM
+    producto;
+
+-- 6 Calcula el precio más caro de todos los productos.
+SELECT 
+    MAX(precio)
+FROM
+    producto;
+
+-- 7 Lista el nombre y el precio del producto más barato.
+SELECT 
+    nombre, MIN(precio) AS mas_barato
+FROM
+    producto;
+
+-- 8 Lista el nombre y el precio del producto más caro.
+SELECT 
+    nombre, MAX(precio) AS mas_caro
+FROM
+    producto;
+
+-- 9 Calcula la suma de los precios de todos los productos.
+SELECT 
+    SUM(precio) AS total_precio
+FROM
+    producto;
+
+-- 10 Calcula el número de productos que tiene el fabricante Asus.
+SELECT 
+    fabricante.nombre, COUNT(producto.nombre)
+FROM
+    producto
+        JOIN
+    fabricante ON fabricante.codigo = producto.codigo_fabricante
+WHERE
+    fabricante.nombre = 'Asus';
+
+-- 11 Calcula la media del precio de todos los productos del fabricante Asus.
+SELECT 
+    fabricante.nombre, AVG(producto.precio) AS media
+FROM
+    producto
+        JOIN
+    fabricante ON fabricante.codigo = producto.codigo_fabricante
+WHERE
+    fabricante.nombre = 'Asus';
+
+-- 12 Calcula el precio más barato de todos los productos del fabricante Asus. 
+SELECT 
+    fabricante.nombre, MIN(producto.precio) AS mas_barato
+FROM
+    producto
+        JOIN
+    fabricante ON fabricante.codigo = producto.codigo_fabricante
+WHERE
+    fabricante.nombre = 'Asus';
+
+-- 13 Calcula el precio más caro de todos los productos del fabricante Asus.
+SELECT 
+    fabricante.nombre, MAX(producto.precio) AS mas_caro
+FROM
+    producto
+        JOIN
+    fabricante ON fabricante.codigo = producto.codigo_fabricante
+WHERE
+    fabricante.nombre = 'Asus';
+
+-- 14 Calcula la suma de todos los productos del fabricante Asus.
+SELECT 
+    f.nombre, COUNT(producto.nombre) AS cant
+FROM
+    producto
+        JOIN
+    fabricante AS f ON f.codigo = producto.codigo_fabricante
+WHERE
+    f.nombre = 'Asus';
+
+-- 15 Muestra el precio máximo, precio mínimo, precio medio y el número total de productos que tiene el fabricante Crucial.
+SELECT 
+    f.nombre,
+    MAX(p.precio) AS max,
+    MIN(p.precio) AS min,
+    AVG(p.precio) AS media,
+    COUNT(p.nombre) AS total
+FROM
+    producto AS p
+        JOIN
+    fabricante AS f ON f.codigo = p.codigo_fabricante
+WHERE
+    f.nombre = 'Crucial';
+
+-- 16 Muestra el número total de productos que tiene cada uno de los fabricantes. El listado también debe incluir los fabricantes que no 
+-- tienen ningún producto. El resultado mostrará dos columnas, una con el nombre del fabricante y otra con el número de productos que tiene. 
+-- Ordene el resultado descendentemente por el número de productos.
+SELECT 
+    f.nombre, COUNT(p.nombre) AS total
+FROM
+    fabricante AS f
+        LEFT JOIN
+    producto AS p ON p.codigo_fabricante = f.codigo
+GROUP BY f.nombre
+ORDER BY total DESC;
+
+-- 17 Muestra el precio máximo, precio mínimo y precio medio de los productos de cada uno de los fabricantes. El resultado mostrará el 
+-- nombre del fabricante junto con los datos que se solicitan.
+SELECT 
+    f.nombre,
+    MAX(p.precio) AS max,
+    MIN(p.precio) AS min,
+    AVG(p.precio) AS media
+FROM
+    fabricante AS f
+        LEFT JOIN
+    producto AS p ON p.codigo_fabricante = f.codigo
+GROUP BY f.nombre;
+
+-- 18 Muestra el precio máximo, precio mínimo, precio medio y el número total de productos de los fabricantes que tienen un precio 
+-- medio superior a 200€. No es necesario mostrar el nombre del fabricante, con el código del fabricante es suficiente.
+SELECT 
+    f.codigo,
+    MAX(p.precio) AS max,
+    MIN(p.precio) AS min,
+    AVG(p.precio) AS media,
+    COUNT(p.nombre) AS total
+FROM
+    fabricante AS f
+        LEFT JOIN
+    producto AS p ON p.codigo_fabricante = f.codigo
+GROUP BY f.codigo
+HAVING AVG(p.precio) > 200;
+
+
+-- 19 Muestra el nombre de cada fabricante, junto con el precio máximo, precio mínimo, precio medio y el número total de productos 
+-- de los fabricantes que tienen un precio medio superior a 200€. Es necesario mostrar el nombre del fabricante.
+SELECT 
+    f.nombre,
+    MAX(p.precio) AS max,
+    MIN(p.precio) AS min,
+    AVG(p.precio) AS media,
+    COUNT(p.nombre) AS total
+FROM
+    fabricante AS f
+        JOIN
+    producto AS p ON p.codigo_fabricante = f.codigo
+GROUP BY f.nombre
+HAVING AVG(p.precio) > 200;
+
+
+-- 20 Calcula el número de productos que tienen un precio mayor o igual a 180€.
+SELECT 
+    COUNT(nombre)
+FROM
+    producto
+WHERE
+    precio >= 180;
+
+-- 21 Calcula el número de productos que tiene cada fabricante con un precio mayor o igual a 180€.
+SELECT 
+    f.nombre, COUNT(p.nombre) AS total
+FROM
+    producto AS p
+        RIGHT JOIN
+    fabricante AS f ON p.codigo_fabricante = f.codigo
+WHERE
+    p.precio >= 180
+GROUP BY f.nombre;
+
+-- 22 Lista el precio medio los productos de cada fabricante, mostrando solamente el código del fabricante.
+SELECT 
+    codigo_fabricante, AVG(precio)
+FROM
+    producto
+GROUP BY codigo_fabricante;
+
+
+-- 23 Lista el precio medio los productos de cada fabricante, mostrando solamente el nombre del fabricante.
+SELECT 
+    f.nombre, AVG(p.precio) AS precio_medio
+FROM
+    fabricante AS f
+        LEFT JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre;
+
+-- 24 Lista los nombres de los fabricantes cuyos productos tienen un precio medio mayor o igual a 150€.
+SELECT 
+    f.nombre
+FROM
+    fabricante AS f
+        JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+HAVING AVG(p.precio) >= 150;
+
+
+-- 25 Devuelve un listado con los nombres de los fabricantes que tienen 2 o más productos.
+SELECT 
+    f.nombre
+FROM
+    fabricante AS f
+        JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+HAVING COUNT(p.nombre) >= 2;
+
+
+-- 26 Devuelve un listado con los nombres de los fabricantes y el número de productos que tiene cada uno con un precio 
+-- superior o igual a 220 €. No es necesario mostrar el nombre de los fabricantes que no tienen productos que cumplan la condición.
+SELECT 
+    f.nombre, COUNT(p.nombre) AS total
+FROM
+    fabricante AS f
+        INNER JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+WHERE
+    p.precio >= 220
+GROUP BY f.nombre
+ORDER BY total DESC;
+
+-- 27 Devuelve un listado con los nombres de los fabricantes y el número de productos que tiene cada uno con un precio superior o igual
+-- a 220 €. El listado debe mostrar el nombre de todos los fabricantes, es decir, si hay algún fabricante que no tiene productos con 
+-- un precio superior o igual a 220€ deberá aparecer en el listado con un valor igual a 0 en el número de productos.
+SELECT 
+    f.nombre, IF(p.precio >= 220, COUNT(p.nombre), 0) AS total
+FROM
+    fabricante AS f
+        LEFT JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+ORDER BY total DESC;
+
+
+-- 28 Devuelve un listado con los nombres de los fabricantes donde la suma del precio de todos sus productos es superior a 1000 €.
+SELECT 
+    f.nombre
+FROM
+    fabricante AS f
+        LEFT JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+HAVING SUM(p.precio) > 1000;
+
+-- 29 Devuelve un listado con el nombre del producto más caro que tiene cada fabricante. El resultado debe tener tres 
+-- columnas: nombre del producto, precio y nombre del fabricante. El resultado tiene que estar ordenado alfabéticamente de 
+-- menor a mayor por el nombre del fabricante.
+SELECT 
+    p.nombre, MAX(p.precio), f.nombre
+FROM
+    fabricante AS f
+        INNER JOIN
+    producto AS p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+ORDER BY f.nombre ASC;
